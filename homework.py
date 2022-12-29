@@ -1,3 +1,5 @@
+# Не забыть запуллить на VDS обновление после ревью
+
 import logging
 import requests
 import sys
@@ -49,12 +51,24 @@ def check_tokens():
         TELEGRAM_CHAT_ID
     ]
 
+    # Список отсутствующих переменных, который будем наполнять
+    missing_env_vars = list()
+
+    # Сначала циклом проверяем "потерянные" переменные,
+    # если находим - добавляем в missing_env_vars
     for env_var in env_vars:
         if env_var is None:
+            missing_env_vars.append(env_var)
+
+    # Если в missing_env_vars есть хотя бы один элемент,
+    # логгируем все элементы этого списка циклом и принудительно прекращаем
+    # работу программы
+    if len(missing_env_vars) != 0:
+        for env_var in missing_env_vars:
             logging.critical(
                 f'Не доступна обязательная переменная окружения {env_var}'
             )
-            sys.exit()
+        sys.exit()
 
 
 def send_message(bot, message):
@@ -102,7 +116,7 @@ def parse_status(homework):
     """Получение статуса домашней работы из ответа API."""
     homework_name = homework.get('homework_name')
     status = homework.get('status')
-    if status not in HOMEWORK_VERDICTS.keys():
+    if status not in HOMEWORK_VERDICTS:
         raise KeyError('API возвращает недокументаированный'
                        'либо пустой статус домашней работы')
     verdict = HOMEWORK_VERDICTS.get(status)
