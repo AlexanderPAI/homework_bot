@@ -1,5 +1,3 @@
-# Не забыть запуллить на VDS обновление после ревью
-
 import logging
 import requests
 import sys
