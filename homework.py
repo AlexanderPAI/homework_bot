@@ -51,7 +51,9 @@ def check_tokens():
 
     for env_var in env_vars:
         if env_var is None:
-            logging.critical('Не доступна обязательная перемменная окружения')
+            logging.critical(
+                f'Не доступна обязательная переменная окружения {env_var}'
+            )
             sys.exit()
 
 
@@ -87,7 +89,7 @@ def check_response(response):
     """Проверка ответа API на соответствие документации API."""
     if not isinstance(response, dict):
         raise TypeError(f'Получен {type(response)} вместо ожидаемого словаря')
-    if 'homeworks' not in response.keys():
+    if 'homeworks' not in response:
         raise KeyError('В ответе API нет ключа "homeworks"')
     if not isinstance(response.get('homeworks'), list):
         raise TypeError(f'homeworks не является списком, возвращается'
@@ -100,10 +102,10 @@ def parse_status(homework):
     """Получение статуса домашней работы из ответа API."""
     homework_name = homework.get('homework_name')
     status = homework.get('status')
-    verdict = HOMEWORK_VERDICTS.get(status)
     if status not in HOMEWORK_VERDICTS.keys():
         raise KeyError('API возвращает недокументаированный'
                        'либо пустой статус домашней работы')
+    verdict = HOMEWORK_VERDICTS.get(status)
     if homework_name is None:
         raise KeyError('В ответе API нет ключа "homework_name"')
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -132,8 +134,9 @@ def main():
             timestamp = response.get('current_date')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
+            message_for_user = 'Что-то пошло не так, уже устраняем'
             logging.error(message)
-            send_message(bot, message)
+            send_message(bot, message_for_user)
         finally:
             time.sleep(RETRY_PERIOD)
 
